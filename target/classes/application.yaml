@@ -24,7 +24,6 @@ spring:
 
   app:
     jwt:
-      secret: ${JWT_SECRET}
-
+      secret: your-base64-secret-key-here
 server:
   port: 8080
