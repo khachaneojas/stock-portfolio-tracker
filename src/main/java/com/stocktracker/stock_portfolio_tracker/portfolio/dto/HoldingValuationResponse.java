@@ -5,6 +5,8 @@ import java.math.BigDecimal;
 public record HoldingValuationResponse(
         String symbol,
         String companyName,
+        String sector,
+        String currency,
         BigDecimal quantity,
         BigDecimal averageBuyPrice,
         BigDecimal currentPrice,

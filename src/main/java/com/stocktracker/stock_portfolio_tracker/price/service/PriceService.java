@@ -1,5 +1,6 @@
 package com.stocktracker.stock_portfolio_tracker.price.service;
 
+import com.stocktracker.stock_portfolio_tracker.alert.service.AlertService;
 import com.stocktracker.stock_portfolio_tracker.exception.PriceNotAvailableException;
 import com.stocktracker.stock_portfolio_tracker.exception.ResourceNotFoundException;
 import com.stocktracker.stock_portfolio_tracker.price.dto.StockPriceResponse;
@@ -27,6 +28,7 @@ public class PriceService {
     private final StockPriceRepository stockPriceRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final PriceWebSocketPublisher priceWebSocketPublisher;
+    private final AlertService alertService;
 
     private final Random random = new Random();
 
@@ -109,7 +111,11 @@ public class PriceService {
                             recordedAt
                     )
             );
+
+            alertService.checkStockPriceAlerts(stock, newPrice);
         }
+
+        alertService.checkPortfolioValueAlerts();
     }
 
     private BigDecimal generateSimulatedPrice(Stock stock) {

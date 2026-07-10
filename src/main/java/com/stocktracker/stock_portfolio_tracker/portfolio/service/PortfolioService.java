@@ -137,38 +137,8 @@ public class PortfolioService {
     public PortfolioValuationResponse getMyPortfolioValuation() {
 
         User currentUser = currentUserProvider.getCurrentUser();
+        return getPortfolioValuationForUser(currentUser);
 
-        List<PortfolioHolding> holdings = holdingRepository.findByUser(currentUser);
-
-        List<HoldingValuationResponse> holdingValuations = holdings.stream()
-                .map(this::mapToValuationResponse)
-                .toList();
-
-        BigDecimal totalInvested = holdingValuations.stream()
-                .map(HoldingValuationResponse::investedAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal currentValue = holdingValuations.stream()
-                .map(HoldingValuationResponse::currentValue)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal totalProfitLoss = currentValue.subtract(totalInvested);
-
-        BigDecimal totalProfitLossPercentage = BigDecimal.ZERO;
-
-        if (totalInvested.compareTo(BigDecimal.ZERO) > 0) {
-            totalProfitLossPercentage = totalProfitLoss
-                    .divide(totalInvested, 4, RoundingMode.HALF_UP)
-                    .multiply(BigDecimal.valueOf(100));
-        }
-
-        return new PortfolioValuationResponse(
-                totalInvested,
-                currentValue,
-                totalProfitLoss,
-                totalProfitLossPercentage,
-                holdingValuations
-        );
     }
 
     private HoldingValuationResponse mapToValuationResponse(PortfolioHolding holding) {
@@ -196,6 +166,8 @@ public class PortfolioService {
         return new HoldingValuationResponse(
                 stock.getSymbol(),
                 stock.getCompanyName(),
+                stock.getSector(),
+                stock.getCurrency(),
                 holding.getQuantity(),
                 holding.getAverageBuyPrice(),
                 currentPrice,
@@ -203,6 +175,41 @@ public class PortfolioService {
                 currentValue,
                 profitLoss,
                 profitLossPercentage
+        );
+    }
+
+    public PortfolioValuationResponse getPortfolioValuationForUser(User user) {
+
+        List<PortfolioHolding> holdings = holdingRepository.findByUser(user);
+
+        List<HoldingValuationResponse> holdingValuations = holdings.stream()
+                .map(this::mapToValuationResponse)
+                .toList();
+
+        BigDecimal totalInvested = holdingValuations.stream()
+                .map(HoldingValuationResponse::investedAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal currentValue = holdingValuations.stream()
+                .map(HoldingValuationResponse::currentValue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalProfitLoss = currentValue.subtract(totalInvested);
+
+        BigDecimal totalProfitLossPercentage = BigDecimal.ZERO;
+
+        if (totalInvested.compareTo(BigDecimal.ZERO) > 0) {
+            totalProfitLossPercentage = totalProfitLoss
+                    .divide(totalInvested, 4, java.math.RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+        }
+
+        return new PortfolioValuationResponse(
+                totalInvested,
+                currentValue,
+                totalProfitLoss,
+                totalProfitLossPercentage,
+                holdingValuations
         );
     }
 
