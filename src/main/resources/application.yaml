@@ -3,28 +3,36 @@ spring:
     name: stock-portfolio-tracker
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/stock_portfolio_tracker
-    username: postgres
-    password: postgres
-
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      timeout: 2000ms
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/stock_portfolio_tracker}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
     open-in-view: false
+    show-sql: ${SHOW_SQL:true}
     properties:
       hibernate:
         format_sql: true
 
-  app:
-    jwt:
-      secret: ${JWT_SECRET}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+
+market:
+  data:
+    provider: finnhub
+    finnhub:
+      base-url: https://finnhub.io/api/v1
+      api-key: ${FINNHUB_API_KEY:}
+      enabled: ${FINNHUB_ENABLED:true}

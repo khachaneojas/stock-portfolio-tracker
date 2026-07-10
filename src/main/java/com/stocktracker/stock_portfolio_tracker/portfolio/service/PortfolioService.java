@@ -1,6 +1,8 @@
 package com.stocktracker.stock_portfolio_tracker.portfolio.service;
 
 import com.stocktracker.stock_portfolio_tracker.portfolio.dto.*;
+import com.stocktracker.stock_portfolio_tracker.portfolio.entity.PortfolioSnapshot;
+import com.stocktracker.stock_portfolio_tracker.portfolio.repository.PortfolioSnapshotRepository;
 import com.stocktracker.stock_portfolio_tracker.price.service.PriceService;
 import com.stocktracker.stock_portfolio_tracker.security.CurrentUserProvider;
 import com.stocktracker.stock_portfolio_tracker.exception.DuplicateResourceException;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,6 +29,7 @@ public class PortfolioService {
     private final StockRepository stockRepository;
     private final CurrentUserProvider currentUserProvider;
     private final PriceService priceService;
+    private final PortfolioSnapshotRepository snapshotRepository;
 
     public HoldingResponse addHolding(AddHoldingRequest request) {
 
@@ -211,6 +215,38 @@ public class PortfolioService {
                 totalProfitLossPercentage,
                 holdingValuations
         );
+    }
+
+    public void createSnapshotForUser(User user) {
+
+        PortfolioValuationResponse valuation = getPortfolioValuationForUser(user);
+
+        PortfolioSnapshot snapshot = PortfolioSnapshot.builder()
+                .user(user)
+                .totalInvested(valuation.totalInvested())
+                .currentValue(valuation.currentValue())
+                .profitLoss(valuation.totalProfitLoss())
+                .profitLossPercentage(valuation.totalProfitLossPercentage())
+                .recordedAt(Instant.now())
+                .build();
+
+        snapshotRepository.save(snapshot);
+    }
+
+    public List<PortfolioSnapshotResponse> getMyPortfolioSnapshots() {
+
+        User currentUser = currentUserProvider.getCurrentUser();
+
+        return snapshotRepository.findTop30ByUserOrderByRecordedAtDesc(currentUser)
+                .stream()
+                .map(snapshot -> new PortfolioSnapshotResponse(
+                        snapshot.getTotalInvested(),
+                        snapshot.getCurrentValue(),
+                        snapshot.getProfitLoss(),
+                        snapshot.getProfitLossPercentage(),
+                        snapshot.getRecordedAt()
+                ))
+                .toList();
     }
 
 }

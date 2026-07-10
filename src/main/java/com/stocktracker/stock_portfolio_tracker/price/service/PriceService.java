@@ -29,6 +29,7 @@ public class PriceService {
     private final RedisTemplate<String, String> redisTemplate;
     private final PriceWebSocketPublisher priceWebSocketPublisher;
     private final AlertService alertService;
+    private final MarketDataService marketDataService;
 
     private final Random random = new Random();
 
@@ -86,7 +87,8 @@ public class PriceService {
                 .toList();
 
         for (Stock stock : activeStocks) {
-            BigDecimal newPrice = generateSimulatedPrice(stock);
+//            BigDecimal newPrice = generateSimulatedPrice(stock);
+            BigDecimal newPrice = getPriceFromMarketOrSimulation(stock);
             Instant recordedAt = Instant.now();
 
             StockPrice stockPrice = StockPrice.builder()
@@ -169,6 +171,21 @@ public class PriceService {
                 .orElseThrow(() ->
                         new PriceNotAvailableException("Price not available for stock: " + normalizedSymbol)
                 );
+    }
+
+    private BigDecimal getPriceFromMarketOrSimulation(Stock stock) {
+
+        try {
+            BigDecimal marketPrice = marketDataService.getLatestPrice(stock.getSymbol());
+
+            if (marketPrice != null && marketPrice.compareTo(BigDecimal.ZERO) > 0) {
+                return marketPrice;
+            }
+
+        } catch (Exception ignored) {
+        }
+
+        return generateSimulatedPrice(stock);
     }
 
 }

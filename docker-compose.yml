@@ -1,23 +1,86 @@
 services:
+
   postgres:
     image: postgres:16
     container_name: stock-portfolio-db
+
     environment:
       POSTGRES_DB: stock_portfolio_tracker
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+
     ports:
       - "5432:5432"
+
     volumes:
       - stock_portfolio_postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U postgres -d stock_portfolio_tracker"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+
 
   redis:
     image: redis:7
     container_name: stock-portfolio-redis
+
     ports:
       - "6379:6379"
+
     volumes:
       - stock_portfolio_redis_data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: stock-portfolio-app
+
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/stock_portfolio_tracker
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      JWT_SECRET: ${JWT_SECRET}
+      FINNHUB_API_KEY: ${FINNHUB_API_KEY}
+      FINNHUB_ENABLED: ${FINNHUB_ENABLED:-true}
+
+      SHOW_SQL: false
+      SERVER_PORT: 8080
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+    restart: unless-stopped
+
 
 volumes:
   stock_portfolio_postgres_data:

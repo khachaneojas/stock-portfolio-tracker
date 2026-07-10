@@ -1,10 +1,7 @@
 package com.stocktracker.stock_portfolio_tracker.portfolio.controller;
 
 import com.stocktracker.stock_portfolio_tracker.common.response.ApiResponse;
-import com.stocktracker.stock_portfolio_tracker.portfolio.dto.AddHoldingRequest;
-import com.stocktracker.stock_portfolio_tracker.portfolio.dto.HoldingResponse;
-import com.stocktracker.stock_portfolio_tracker.portfolio.dto.PortfolioValuationResponse;
-import com.stocktracker.stock_portfolio_tracker.portfolio.dto.UpdateHoldingRequest;
+import com.stocktracker.stock_portfolio_tracker.portfolio.dto.*;
 import com.stocktracker.stock_portfolio_tracker.portfolio.service.PortfolioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -85,6 +82,17 @@ public class PortfolioController {
 
         return ResponseEntity.ok(
                 ApiResponse.success("Portfolio valuation fetched successfully.", response)
+        );
+    }
+
+    @GetMapping("/snapshots")
+    public ResponseEntity<ApiResponse<List<PortfolioSnapshotResponse>>> getMyPortfolioSnapshots() {
+
+        List<PortfolioSnapshotResponse> response =
+                portfolioService.getMyPortfolioSnapshots();
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Portfolio snapshots fetched successfully.", response)
         );
     }
 
