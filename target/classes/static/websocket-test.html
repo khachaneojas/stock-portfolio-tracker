@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Stock Price WebSocket Test</title>
+</head>
+<body>
+<h2>Live Stock Price Updates</h2>
+<ul id="prices"></ul>
+
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+
+<script>
+    const client = new StompJs.Client({
+        brokerURL: 'ws://localhost:8080/ws',
+        reconnectDelay: 5000,
+        onConnect: () => {
+            console.log('Connected');
+
+            client.subscribe('/topic/prices', message ⇒ {
+                const data = JSON.parse(message.body);
+
+                const item = document.createElement('li');
+                item.textContent =
+                    `${data.symbol} - ${data.companyName}: ${data.price} ${data.currency}`;
+
+                document.getElementById('prices').prepend(item);
+            });
+        }
+    });
+
+    client.activate();
+</script>
+</body>
+</html>
