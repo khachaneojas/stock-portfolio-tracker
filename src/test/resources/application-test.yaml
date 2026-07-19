@@ -1,0 +1,21 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+    show-sql: false
+
+  task:
+    scheduling:
+      enabled: false
+
+app:
+  jwt:
+    secret: i/Ctlr0Nm1+EUBtzUhyQ0vrgQqG0cZG0zs85EiAYebWmmpswdxKsIBX53X6ci6U2r5PIQqgcgEZEaCQ05xUBdg==
+
+market:
+  data:
+    finnhub:
+      base-url: http://localhost
+      api-key: test-key
+      enabled: false
